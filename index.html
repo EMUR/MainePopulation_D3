@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<body>
+    <style>
+
+svg {
+  font: 10px sans-serif;
+}
+
+h1, h2, h3,h4{
+ text-align: center;
+    color: cornflowerblue;
+}
+.caption {
+  font-weight: bold;
+}
+
+.key path {
+  display: none;
+}
+
+.key line {
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+.county-border {
+  fill: none;
+  stroke: #000;
+  stroke-opacity: .3;
+}
+
+</style>
+    <h1>Maine Population Density, 2016 </h1>
+<script src="//d3js.org/d3.v3.min.js"></script>
+<script src="//d3js.org/topojson.v1.min.js"></script>
+<script>
+var width = 960,
+    height = 700;
+    
+    
+var formatNumber = d3.format(",d");
+
+var path = d3.geo.path()
+    .projection(null);
+var color = d3.scale.threshold()
+    .domain([1, 10, 50, 100, 500, 1000, 2000, 5000])
+    .range(["#fff7ec", "#fee8c8", "#fdd49e", "#fdbb84", "#fc8d59", "#ef6548", "#d7301f", "#b30000", "#7f0000"]);
+    //   .range(["#f2d9f2", "#e5b3e5", "#d88dd8", "#cb67cb", "#be41be", "#983498", "#722772", "#4c1a4c", "#260d26"]);
+    
+    // A position encoding for the key only.
+var x = d3.scale.linear()
+    .domain([0, 5100])
+    .range([0, 480]);
+
+var xAxis = d3.svg.axis()
+    .scale(x)
+    .orient("bottom")
+    .tickSize(13)
+    .tickValues(color.domain())
+    .tickFormat(function(d) { return d >= 100 ? formatNumber(d) : null; });
+
+var svg1 = d3.select("body").append("svg")
+    .attr("width", width)
+    .attr("height", height/5);
+
+var g = svg1.append("g")
+    .attr("class", "key")
+    .attr("transform", "translate(440,40)")
+
+g.selectAll("rect")
+    .data(color.range().map(function(d, i) {
+      return {
+        x0: i ? x(color.domain()[i - 1]) : x.range()[0],
+        x1: i < color.domain().length ? x(color.domain()[i]) : x.range()[1],
+        z: d
+      };
+    }))
+  .enter().append("rect")
+    .attr("height", 8)
+    .attr("x", function(d) { return d.x0; })
+    .attr("width", function(d) { return d.x1 - d.x0; })
+    .style("fill", function(d) { return d.z; });
+
+g.call(xAxis).append("text")
+    .attr("class", "caption")
+    .attr("y", -6)
+    .text("Population per square mile");
+
+    
+    var svg = d3.select("body").append("svg")
+    .attr("width", width)
+    .attr("height", height);
+    
+d3.json("me.json", function(error, me) {
+  if (error) throw error;
+  // group tracts by color for faster rendering
+  var g2 = svg.append("g")
+      .attr("class", "tract")
+    .selectAll("path")
+      .data(d3.nest()
+        .key(function(d) { return color(d.properties.population / d.properties.area * 2.58999e6); }) // convert square meters to square miles
+        .entries(me.objects.tracts.geometries))
+    .enter().append("path")
+      .style("fill", function(d) { return d.key; })
+      .attr("d", function(d) { return path(topojson.merge(me, d.values)); });
+    
+    g2.attr("transform", "translate(-200,40)");
+    
+});
+d3.select(self.frameElement).style("height", height  + "px");
+</script>
+    
+    <h3>Eyad Murshid</h3>
+    <h4>Instructor: Suresh Lodha</h4>
+    <h4>CMPS 165: Data programming for Visualization</h4>
+    <h4>Fall 2016</h4>
+</body>
