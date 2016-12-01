@@ -147,6 +147,11 @@ function initBasket() {
 
     // Licence control
     $('#addLicence', $basket).click(function (e) {
+        var $licences = $('#licences');
+        var $newRow = $('.licenceRow', $licences).last().clone();
+        var currentIndex = parseInt($newRow.find('.licenceIndex').val());
+        var newRowHtml = $newRow[0].outerHTML.replace(new RegExp(currentIndex, 'g'), currentIndex + 1);
+        $licences.append(newRowHtml);
         return false;
     });
 
